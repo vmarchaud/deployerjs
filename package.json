@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/vmarchaud/deployerjs#readme",
   "dependencies": {
-    "multispinner": "github:vmarchaud/node-multispinner"
+    "async": "^2.1.2",
+    "multispinner": "github:vmarchaud/node-multispinner",
+    "ssh2": "^0.5.2"
   }
 }
