@@ -6,6 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "deployer": "./bin/deployer.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vmarchaud/deployerjs.git"
@@ -18,6 +21,7 @@
   "homepage": "https://github.com/vmarchaud/deployerjs#readme",
   "dependencies": {
     "async": "^2.1.2",
+    "commander": "^2.9.0",
     "multispinner": "github:vmarchaud/node-multispinner",
     "ssh2": "^0.5.2"
   }
