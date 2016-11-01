@@ -17,8 +17,7 @@ commander
     console.log('-----> DeployerJs CLI Help');
     console.log('');
     console.log('  Commands:');
-    console.log('    deploy               update deploy to the latest release');
-    console.log('    update               update deploy to the latest release');
+    console.log('    deploy               update remote to the latest release');
     console.log('    revert [n]           revert to [n]th last deployment or 1');
     console.log('    curr[ent]            output current release commit');
     console.log('    prev[ious]           output previous release commit');
@@ -27,7 +26,8 @@ commander
     console.log('');
   })
   .command('deploy <environement|group> [file]')
-    .description('deploy or update the code in your remote environement')
+    .description('deploy the code in your remote environement')
+    .alias('update')
     .action((environement, file) => {
       // instanciate api
       var deployer = new Deployer(resolveConf(file), {
@@ -57,6 +57,6 @@ function resolveConf(confPath) {
 
 function exit(err) {
   if (err) 
-    console.log('[ERROR] %s', err.message || err);
+   console.log('[CLI] got error : %s', err.message || err);
   process.exit(err ? 1 : 0);
 }
