@@ -7,11 +7,13 @@ const pkg       = require('../package.json')
 const commander = require('commander')
 const fs        = require('fs')
 const path      = require('path')
+const util      = require('util')
 
 commander
   .version(pkg.version)
   .option('-s, --strategy [git]', 'set the strategy used to balance connection (default to git)', 'git')
   .option('-r, --reporter [std]', 'change reporter used to print informations (default to stdout)', 'std')
+  .option('-d, --details', 'create a detailed report on the filesystem (default to false)', false)
   .on('--help', () => {
     console.log('');
     console.log('-----> DeployerJs CLI Help');
@@ -37,26 +39,45 @@ commander
 
       // select and deploy
       deployer.select(environement, (err, servers) => {
-        if (err) return exit(err);
-        deployer.deploy(servers, exit)
+        if (err) commander.details ? generateDetails(servers, exit, err) : exit(err);
+        deployer.deploy(servers, (err) => {
+          return commander.details ? generateDetails(servers, exit, err) : exit(err);
+        })
       })
     });
 
 commander.parse(process.argv);
 
+function generateDetails(servers, next, err) {
+  let reports = { '_CLI_GOT_' : err ? err.message || err : 'SUCCESS' };
+  // only get the details
+  for (let server in servers) {
+    reports[server] = servers[server].reporter.details(server);
+  }
+  // try to write it on filesystem
+  let pwd = path.join(process.env.PWD || process.cwd(), `deployer_details.json`);
+  fs.writeFile(pwd, JSON.stringify(reports, null, 2), next);
+}
+
 function resolveConf(confPath) {
   let file;
-  confPath = path.resolve(process.cwd(), confPath || 'ecosystem.json');
-  try {
-    file = JSON.parse(fs.readFileSync(confPath));
-  } catch (err) {
-    return exit(err)
+  let paths = [confPath, 'package.json', 'ecosystem.json']
+  for(var tmpPath of paths) {
+    if (!tmpPath) continue ;
+
+    tmpPath = path.resolve(tmpPath);
+    try {
+      file = JSON.parse(fs.readFileSync(tmpPath));
+      break ;
+    } catch (err) {
+      continue ;
+    }
   }
-  return file.deploy ? file.deploy : file;
+  return !file ? exit(new Error('Cant find any valid file configuration')) : (file.deploy ? file.deploy : file);
 }
 
 function exit(err) {
   if (err) 
-   console.log('[CLI] got error : %s', err.message || err);
+   console.log('[CLI] ERROR : %s', err.message || err);
   process.exit(err ? 1 : 0);
 }
