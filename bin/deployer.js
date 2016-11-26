@@ -8,6 +8,7 @@ const commander = require('commander')
 const fs        = require('fs')
 const path      = require('path')
 const util      = require('util')
+const vm        = require('vm')
 
 commander
   .version(pkg.version)
@@ -99,9 +100,15 @@ function resolveConf(confPath) {
 
     tmpPath = path.resolve(tmpPath);
     try {
-      file = JSON.parse(fs.readFileSync(tmpPath));
+      let str = fs.readFileSync(tmpPath);
+      // run the file if its js or json
+      if (tmpPath.match(/\.js|\.json/))
+        file = vm.runInThisContext('(' + str + ')');
+      else 
+        file = JSON.parse(str);
       break ;
     } catch (err) {
+      console.log(err);
       continue ;
     }
   }
