@@ -7,8 +7,26 @@ Yet Another Deployement Tool :
 
 Pure javascript, no binary needed on the local machine, forget about under-the-hood `shellscript` or `rsync`/`ssh` binary spawn. I just want to run this tool everywhere (even under windows, yes, windows) i can run NodeJS.
 
-# How do i run it ?
-**soon™**
+# How to use it ?
+
+##### CLI Overview
+```bash
+deployer update        <environement|group> [file]       # update remote to latest
+deployer rollback      <environement|group> [file] [n]   # revert to [n]th last
+deployer currrent      <environement|group> [file]       # output current release commit
+deployer previous      <environement|group> [file]       # output previous release commit
+deployer execute <cmd> <environement|group> [file]       # execute the given <cmd>
+deployer list          <environement|group> [file]       # list previous deployements
+```
+
+### CLI options
+
+You can specify some options when using the CLI : 
+
+- `-d` or `--details` when set to true, a file containing detailed logs of the deployement will be created in the current directory
+- `-s [strategy]` or `--strategy [strategy]` choose the strategy used to deploy, see below for explanation
+- `-r [reporter]` or `--reporter [reporter]`  choose the reporter used to show deployement info, see below for explanation
+
 
 # Configuration
 
@@ -31,7 +49,7 @@ DeployerJS is based on the configuration architecture of [PM2](https://github.co
   }
  }
 ```
-To list all environnement you have two choice, either you will have the list at the root of the JSON document (like above) or you specify `deploy` object that will list them (example here with a `package.json` file) : 
+To list all environnements you have two choices, put the list at the root of the JSON document (like above) or specify `deploy` object that will list them (example here with a `package.json` file) : 
 ```javascript
   {
   "name": "myproject",
@@ -67,15 +85,20 @@ Here are the **principal options** you can set in a environnement :
 
 ## Hooks
 
-You can tell deployerjs to execute command for you, we call them **hooks**, they can be run either on **remote** or **local** system, you  just need an entry in the configuration (like the example above), here are the current hooks : 
+You can tell deployerjs to execute commands for you, we call them **hooks**, they can be run either on **remote** or **local** system, you  just need an entry in the configuration (like the above example), here are the current hooks : 
   - pre-setup & pre-setup-local
   - post-setup & post-setup-local
   - post-rollback & post-rollback-local
   - post-deploy & post-deploy-local
+ 
 
 ## Deployement Strategy
 
-Deployement action (like updating/rollbacking) are done via **Strategy**, the most used should be `GitStrategy` that will simply use **git** on the remote server to execute all commands necessary to deploy the code, they use **their own key/value configuration**, so i split their configuration.
+Deployement action (like updating/rollbacking) are done via **Strategy**, the default is the`GitStrategy` that will simply use **git** on the remote server to execute all commands necessary to deploy the code, they use **their own key/value configuration**, so i split their configuration.
+
+Available strategies (and the corresponding CLI option to use) : 
+- GitStrategy (`--strategy git`)
+
 
 ### GitStrategy
 
@@ -88,13 +111,23 @@ Deployement action (like updating/rollbacking) are done via **Strategy**, the mo
 | origin | String | `origin` |  | origin used (override `ref`) |
 | repo | String |  | `github.com/vmarchaud/deployer` | Git repo URI |
 
+## Deployment Reporter
+
+To display information relative to deployement, we use a `reporter` (just a class with some methods) that will handle display of information.
+
+By default the `StdReporter` is used, it will just print all data to STDOUT.
+
+Available reporters (and the corresponding CLI option to use) : 
+- StdReporter (`--reporter std`)
+- SpinnerReporter (`--reporter spinner`)
+
 # Architecture
 
 Because you want to know how to fork this and start hacking it :
 
 **soon™**
 
-# Relevent documentation
+# Relevant documentation
 
 - [ssh2](https://github.com/mscdex/ssh2) - the module used to connect over a SSH connection to the servers
 - [ssh2-streams](https://github.com/mscdex/ssh2-streams/blob/master/SFTPStream.md) - the module used by `ssh2` to implement some protocols (sftp mainly used here).
