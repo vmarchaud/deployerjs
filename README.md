@@ -24,8 +24,8 @@ deployer list          <environement|group> [file]       # list previous deploye
 You can specify some options when using the CLI : 
 
 - `-d` or `--details` when set to true, a file containing detailed logs of the deployement will be created in the current directory
-- `-s [strategy]` or `--strategy [strategy]` choose the strategy used to deploy, see below for explanation
-- `-r [reporter]` or `--reporter [reporter]`  choose the reporter used to show deployement info, see below for explanation
+- `-s [strategy]` or `--strategy [strategy]` choose the strategy used to deploy, [see below for explanation](https://github.com/vmarchaud/deployerjs#deployement-strategy)
+- `-r [reporter]` or `--reporter [reporter]`  choose the reporter used to show deployement info, [see below for explanation](https://github.com/vmarchaud/deployerjs#deployment-reporter)
 
 
 # Configuration
