@@ -20,7 +20,7 @@ describe('Configuration', () => {
         password: "notadmin",
         host: "127.0.0.1"
       },
-      production: { 
+      production: {
         group: 'sample',
         username: "notroot",
         password: "notadmin",
@@ -43,9 +43,9 @@ describe('Configuration', () => {
     it('should have put both envs in same group', () => {
       let deployer = new Deployer(sample);
       expect(deployer.groups).to.exist;
-      expect('sample').to.be.oneOf(Object.keys(deployer.groups));
-      expect('test').to.be.oneOf(Object.keys(deployer.groups.sample));
-      expect('production').to.be.oneOf(Object.keys(deployer.groups.sample));
+      expect(deployer.groups).to.have.all.keys(['sample']);
+      expect(deployer.groups.sample).to.have.deep.property('[0].name', 'test');
+      expect(deployer.groups.sample).to.have.deep.property('[1].name', 'production');
     })
 
     it('should set default options', () => {
@@ -74,11 +74,73 @@ describe('Configuration', () => {
 
     it('should use options when provided as function', () => {
       let deployer = new Deployer(sample, {
-        reporter: config.reporters.SPINNER,
+        reporter: config.reporters.VOID,
         strategy: config.strategies.GIT
       });
       expect(deployer.strategy).to.equal(config.strategies.GIT);
-      expect(deployer.reporter).to.equal(config.reporters.SPINNER);
+      expect(deployer.reporter).to.equal(config.reporters.VOID);
     })
   })
+
+  describe('Selecting environnements', () => {
+    let sample = {
+       staging1: {
+        group: 'dev',
+        username: "notroot",
+        password: "notadmin",
+        host: "127.0.0.1"
+      },
+      prod1: {
+        group: 'prod',
+        username: "notroot",
+        password: true,
+        host: "127.0.0.1"
+      },
+      staging2: {
+        group: 'dev',
+        username: 'notroot',
+        password: 'notadmin',
+        host: 'localhost'
+      }
+    }
+
+    it('should select a group w/ one host per env', (done) => {
+      let deployer = new Deployer(sample, { reporter: config.reporters.VOID })
+      deployer.select('dev', (err, servers) => {
+        expect(Object.keys(servers).length).to.be.equal(2);
+        expect(servers).to.have.all.keys([sample.staging1.host, sample.staging2.host]);
+        return done()
+      })
+    })
+
+    it('should select a group w/ multiple host per env', (done) => {
+      var conf = JSON.parse(JSON.stringify(sample));
+      conf.staging2.host = ['localhost:3030', 'localhost:4000']
+      conf.staging1.host = ['127.0.0.1:3984', '127.0.0.1:3000']
+      let deployer = new Deployer(conf, { reporter: config.reporters.VOID })
+      deployer.select('dev', (err, servers) => {
+        expect(Object.keys(servers).length).to.be.equal(4);
+        expect(servers[conf.staging2.host[0]].name).to.equal('staging2');
+        expect(servers[conf.staging2.host[1]].name).to.equal('staging2');
+        expect(servers[conf.staging1.host[0]].name).to.equal('staging1');
+        expect(servers[conf.staging1.host[1]].name).to.equal('staging1');
+        return done()
+      })
+    })
+
+    it.skip('should select env and ask for password', (done) => {
+      var conf = JSON.parse(JSON.stringify(sample));
+      let deployer = new Deployer(conf, { reporter: config.reporters.VOID });
+      deployer.select('prod1', (err, servers) => {
+        console.log(servers)
+        return done()
+      });
+      setTimeout(() => {
+        process.stdin.write("toto\n")
+        process.stdin.flush
+      }, 1000);
+    })
+
+  })
+
 })
