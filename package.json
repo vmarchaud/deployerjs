@@ -3,6 +3,11 @@
   "version": "0.2.2",
   "description": "",
   "main": "index.js",
+  "directories": {
+    "bin": "./bin",
+    "lib": "./lib",
+    "example": "./examples"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

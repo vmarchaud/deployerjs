@@ -3,6 +3,7 @@
 'use strict';
 
 const Deployer  = require('../lib/Deployer')
+const deployUtls= require('../lib/utils/DeployUtils')
 const pkg       = require('../package.json')
 const commander = require('commander')
 const fs        = require('fs')
@@ -28,7 +29,7 @@ commander
     console.log('    list       <environement|group> [file]          list previous deploy commits');
     console.log('');
   })
-  commander.command('deploy <environement|group> [file]')
+   commander.command('deploy <environement|group> [file]')
     .description('deploy the code in your remote environement')
     .alias('update')
     .action((environement, file) => {
@@ -46,9 +47,9 @@ commander
         })
       })
     })
-  commander.command('revert <environement|group> [file] [n]')
+  commander.command('rollback <environement|group> [file] [n]')
     .description('rollback the code of your remote environement')
-    .alias('rollback')
+    .alias('revert')
     .action((environement, file, nbr) => {
       if (!nbr && !isNaN(file)) nbr = file;
       
@@ -66,6 +67,27 @@ commander
         })
       })
     });
+  commander.command('clean <environement|group> [file]')
+    .description('clean the remote enviromment and get the latest version of the code')
+    .alias('clear')
+    .action((environement, file) => {
+      deployUtls.askUser('[CLI] Are you sure you want to proceed a clean install of remote system ? y/n ', (res) => {
+        if (!res.match(/yes|y/gi)) return exit(new Error('Aborting clean install'));
+        // instanciate api
+        var deployer = new Deployer(resolveConf(file), {
+          strategy: commander.strategy,
+          reporter: commander.reporter
+        })
+
+        // select and deploy
+        deployer.select(environement, (err, servers) => {
+          if (err) return commander.details ? generateDetails(servers, exit, err) : exit(err);
+          deployer.clean(servers, (err) => {
+            return commander.details ? generateDetails(servers, exit, err) : exit(err);
+          })
+        })
+      })
+    })
 
 commander.parse(process.argv);
 
@@ -79,7 +101,7 @@ function generateDetails(servers, next, err) {
   let reports = { '_CLI_GOT_' : err ? err.message || err : 'SUCCESS' };
   // only get the details
   for (let server in servers) {
-    reports[server] = servers[server].reporter.details(server);
+    reports[server] = servers[server].reporter.details(servers[server]) || [];
     reports[server].forEach((report) => {
       if (report.stdout) 
         report.stdout = JSON.parse(trimUnicode(JSON.stringify(report.stdout)).split("\n"))
@@ -94,8 +116,7 @@ function generateDetails(servers, next, err) {
 
 function resolveConf(confPath) {
   let file;
-  let paths = [confPath, 'package.json', 'ecosystem.json']
-  for (var tmpPath of paths) {
+  for (var tmpPath of [confPath, 'ecosystem.json', 'package.json']) {
     if (!tmpPath) continue ;
 
     tmpPath = path.resolve(tmpPath);
@@ -118,6 +139,8 @@ function resolveConf(confPath) {
 function exit(err) {
   if (err) 
    console.log('[CLI] ERROR : %s', err.message || err);
+  else
+   console.log('[CLI] SUCCESS')
   process.exit(err ? 1 : 0);
 }
 
