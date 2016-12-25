@@ -1,1 +1,1 @@
-module.export = require('./lib/Deployer');
+module.export = require('./lib/Deployer')
