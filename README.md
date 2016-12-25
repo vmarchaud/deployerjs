@@ -1,7 +1,11 @@
 # DeployerJS
 
-Yet Another Deployement Tool :
-**soon™**
+<a href="https://github.com/feross/standard2">
+  <img src="https://cdn.rawgit.com/feross/standard/master/badge.svg" alt="Standard - JavaScript Style Guide" height="25"/>
+</a>
+<a href="https://www.npmjs.com/package/deployerjs">
+  <img src="https://img.shields.io/npm/dt/delpoyerjs.svg?style=flat-square" height="25"/>
+</a>
 
 #### Why Another Deployement Tool ?
 
